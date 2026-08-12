@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"/>
+<title>Sehat - My Health Companion</title>
+<meta name="theme-color" content="#0B1020"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="description" content="Sehat — an AI-styled personal health, wellness and lifestyle companion."/>
+<link rel="stylesheet" href="styles.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <div class="topbar">
+    <div>
+      <div class="greeting" id="greetingName">Assalam-o-Alaikum</div>
+      <div class="date-row"><span class="date" id="todayDate"></span><span class="streak-pill" id="streakPill">🔥 0 din</span></div>
+    </div>
+    <button class="avatar-btn" onclick="showView('view-settings')" id="avatarInitial">S</button>
+  </div>
+  <div class="day-strip" id="dayStrip"></div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="view active" id="view-dashboard">
+    <div class="rings-card">
+      <div class="ai-header">
+        <div class="ai-orb"><span class="ai-orb-core">🤖</span></div>
+        <div class="ai-header-txt">
+          <div class="ai-title">Sehat AI</div>
+          <div class="ai-sub">Aapka aaj ka smart overview</div>
+        </div>
+        <div class="score-badge">
+          <svg class="score-ring" viewBox="0 0 44 44" id="scoreRingSvg"></svg>
+          <span id="scoreVal">--</span>
+        </div>
+      </div>
+      <div class="rings-wrap">
+        <svg class="rings-svg" viewBox="0 0 128 128" id="ringsSvg"></svg>
+        <div class="rings-stats">
+          <div class="ring-stat"><div class="ring-dot" style="background:#E8A33D;color:#E8A33D"></div><span id="statCal"></span></div>
+          <div class="ring-stat"><div class="ring-dot" style="background:#6FE3C9;color:#6FE3C9"></div><span id="statWater"></span></div>
+          <div class="ring-stat"><div class="ring-dot" style="background:#F2C6BE;color:#F2C6BE"></div><span id="statSteps"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-add-row">
+      <button class="quick-add-btn" onclick="quickWater(250)">💧 +250ml Pani</button>
+      <button class="quick-add-btn" onclick="openTrackForm('meal')">🍽️ Meal Log Karein</button>
+      <button class="quick-add-btn" onclick="openTrackForm('mood')">🙂 Mood</button>
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div id="tipsWrap"></div>
+
+    <div class="section-title">Track Karein</div>
+    <div class="rect-grid" id="homeGrid"></div>
+  </div>
+
+  <!-- ===== TRACK HUB ===== -->
+  <div class="view" id="view-track">
+    <div class="section-title">Track Karein</div>
+    <div class="rect-list" id="trackGrid"></div>
+  </div>
+
+  <!-- ===== REPORTS ===== -->
+  <div class="view" id="view-reports">
+    <div class="section-title">Reports</div>
+    <div class="tabs-row" id="reportRangeTabs">
+      <button class="tab-btn" data-range="week" onclick="setReportRange('week')">Weekly</button>
+      <button class="tab-btn" data-range="month" onclick="setReportRange('month')">Monthly</button>
+      <button class="tab-btn" data-range="year" onclick="setReportRange('year')">Yearly</button>
+    </div>
+    <div class="tabs-row" id="reportMetricTabs" style="flex-wrap:wrap;">
+      <button class="tab-btn" data-metric="cal" onclick="setReportMetric('cal')">Calories</button>
+      <button class="tab-btn" data-metric="water" onclick="setReportMetric('water')">Water</button>
+      <button class="tab-btn" data-metric="steps" onclick="setReportMetric('steps')">Steps</button>
+      <button class="tab-btn" data-metric="sleep" onclick="setReportMetric('sleep')">Sleep</button>
+      <button class="tab-btn" data-metric="bp" onclick="setReportMetric('bp')">BP</button>
+      <button class="tab-btn" data-metric="mood" onclick="setReportMetric('mood')">Mood</button>
+    </div>
+    <div class="chart-wrap"><canvas id="reportCanvas" height="220"></canvas></div>
+    <button class="btn" onclick="generatePdfReport()">📄 PDF Report Download Karein</button>
+  </div>
+
+  <!-- ===== PRIVATE ===== -->
+  <div class="view" id="view-private">
+    <div id="privateLock" class="lock-screen">
+      <div class="lock-ico">🔒</div>
+      <h3 id="lockTitle">Private Space</h3>
+      <div class="sub" id="lockSub">PIN daalein</div>
+      <div class="pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="pinPress('1')">1</button>
+        <button class="pin-key" onclick="pinPress('2')">2</button>
+        <button class="pin-key" onclick="pinPress('3')">3</button>
+        <button class="pin-key" onclick="pinPress('4')">4</button>
+        <button class="pin-key" onclick="pinPress('5')">5</button>
+        <button class="pin-key" onclick="pinPress('6')">6</button>
+        <button class="pin-key" onclick="pinPress('7')">7</button>
+        <button class="pin-key" onclick="pinPress('8')">8</button>
+        <button class="pin-key" onclick="pinPress('9')">9</button>
+        <div></div>
+        <button class="pin-key" onclick="pinPress('0')">0</button>
+        <button class="pin-key" onclick="pinBackspace()">⌫</button>
+      </div>
+    </div>
+
+    <div id="privateContent" style="display:none;">
+      <div class="private-header">
+        <h3 style="margin:0 0 4px;">Private Space — Marital Intimacy Log</h3>
+        <div class="sub">Is mahine: <b id="privateMonthCount">0</b> entries</div>
+      </div>
+      <div class="tip-card" style="background:var(--plum-tint);">
+        <div class="ico">💡</div><div class="txt" id="privateTip"></div>
+      </div>
+      <button class="btn plum" onclick="quickIntimacyLog()">+ Aaj Log Karein</button>
+      <div style="height:10px;"></div>
+      <button class="btn ghost" onclick="openSheet(formPrivateAdd())">Details ke Sath Entry Add Karein</button>
+      <div class="card" style="margin-top:14px;">
+        <h3>Recent Entries</h3>
+        <div id="privateList"></div>
+      </div>
+      <div class="section-title">Marriage Life Behtar Banayein</div>
+      <div class="tip-highlight" id="marriageTipHighlight"></div>
+      <div class="card"><h3>Aur Tips</h3><div id="marriageTipsList"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS ===== -->
+  <div class="view" id="view-settings">
+    <div class="section-title">Profile</div>
+    <div class="card">
+      <div class="field"><label>Naam</label><input id="setName" type="text"/></div>
+      <div class="row-2">
+        <div class="field"><label>Age</label><input id="setAge" type="number"/></div>
+        <div class="field"><label>Gender</label>
+          <select id="setGender"><option value="male">Male</option><option value="female">Female</option></select>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Height (cm)</label><input id="setHeight" type="number"/></div>
+        <div class="field"><label>Weight (kg)</label><input id="setWeight" type="number"/></div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Target Weight (kg)</label><input id="setTargetWeight" type="number"/></div>
+        <div class="field"><label>Activity Level</label>
+          <select id="setActivity">
+            <option value="sedentary">Sedentary</option>
+            <option value="light">Light</option>
+            <option value="moderate">Moderate</option>
+            <option value="active">Active</option>
+            <option value="veryactive">Very Active</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Daily Water Goal (ml)</label><input id="setWaterGoal" type="number"/></div>
+      <div class="sub" id="bmiResult" style="font-weight:700;color:var(--pine);"></div>
+      <button class="btn" style="margin-top:10px;" onclick="saveProfile()">Profile Save Karein</button>
+    </div>
+
+    <div class="section-title">Reminders</div>
+    <div class="card">
+      <div class="list-row">
+        <div class="l-title">Notifications Enable Karein</div>
+        <label class="switch"><input type="checkbox" id="notifToggle" onchange="toggleNotifications(this.checked)"/></label>
+      </div>
+    </div>
+
+    <div class="section-title">💧 Water Reminder</div>
+    <div class="card">
+      <p class="sub">Har kitne ghante baad pani peene ka reminder aaye — waqt khud adjust kar sakte hain.</p>
+      <div class="rem-row">
+        <div class="rem-ico ico-teal">💧</div>
+        <div class="rem-info">
+          <div class="rem-label">Water reminder ON/OFF</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="remWaterToggle"/></label>
+      </div>
+      <div class="rem-row">
+        <div class="rem-ico ico-teal">⏱️</div>
+        <div class="rem-info">
+          <div class="rem-label">Interval (ghante mein)</div>
+        </div>
+        <select id="remWaterIntervalHrs" class="rem-num" style="width:84px;">
+          <option value="0.5">0.5</option>
+          <option value="1">1</option>
+          <option value="1.5">1.5</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+      <div class="row-2" style="margin-top:4px;">
+        <div class="field" style="margin-bottom:0;"><label>Start Time</label><input id="remWaterStart" type="time" value="08:00"/></div>
+        <div class="field" style="margin-bottom:0;"><label>End Time</label><input id="remWaterEnd" type="time" value="22:00"/></div>
+      </div>
+      <button class="btn secondary" style="margin-top:14px;" onclick="saveReminders()">Reminders Save Karein</button>
+    </div>
+
+    <div class="section-title">Daily Reminders</div>
+    <div class="card">
+      <div id="dailyReminderRows"></div>
+      <button class="btn secondary" style="margin-top:10px;" onclick="saveReminders()">Reminders Save Karein</button>
+    </div>
+
+    <div class="section-title">Namaz Reminders (5 Prayers)</div>
+    <div class="card">
+      <p class="sub">Apne shehar/mosque ke mutabiq waqt adjust kar lein.</p>
+      <div id="prayerRows"></div>
+      <div class="list-row">
+        <div class="l-title">Namaz Reminders Enable Karein</div>
+        <label class="switch"><input type="checkbox" id="prayersToggle"/></label>
+      </div>
+      <button class="btn secondary" style="margin-top:10px;" onclick="saveReminders()">Namaz Times Save Karein</button>
+    </div>
+
+    <div class="section-title">Extra Reminders</div>
+    <div class="card">
+      <div id="customReminderList"></div>
+      <div class="row-2" style="margin-top:14px;">
+        <div class="field"><label>Reminder Ka Naam</label><input id="customRemLabel" type="text" placeholder="e.g. Medicine"/></div>
+        <div class="field"><label>Waqt</label><input id="customRemTime" type="time"/></div>
+      </div>
+      <button class="btn secondary" onclick="addCustomReminder()">+ Reminder Add Karein</button>
+    </div>
+
+    <div class="section-title">Data — Backup / Restore</div>
+    <div class="card">
+      <p class="sub">Export se aapka data ek JSON file mein save hota hai. Phone badalne ya app dobara install karne par Import se wahi data wapis load ho jata hai.</p>
+      <button class="btn secondary" onclick="exportData()">📥 Backup Export Karein</button>
+      <div style="height:10px;"></div>
+      <button class="btn secondary" onclick="triggerImport()">📤 Backup Import Karein</button>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none;" onchange="importData(this)"/>
+      <div style="height:10px;"></div>
+      <button class="btn ghost" onclick="resetAllData()">Sara Data Reset Karein</button>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <div class="bottomnav">
+    <button class="nav-btn active" data-view="view-dashboard" onclick="showView('view-dashboard')">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H10v-5.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V20h3.5a1 1 0 0 0 1-1v-9"/></svg></div><span>Home</span></button>
+    <button class="nav-btn" data-view="view-track" onclick="showView('view-track')">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div><span>Track</span></button>
+    <button class="nav-btn" data-view="view-reports" onclick="showView('view-reports')">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 16v-4M12 16V8M16 16v-6.5"/></svg></div><span>Reports</span></button>
+    <button class="nav-btn" data-view="view-private" onclick="showView('view-private')">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg></div><span>Private</span></button>
+    <button class="nav-btn" data-view="view-settings" onclick="showView('view-settings')">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .35 1.87l.06.06a2.06 2.06 0 1 1-2.92 2.92l-.06-.06a1.7 1.7 0 0 0-1.87-.35 1.7 1.7 0 0 0-1 1.55V21a2.06 2.06 0 1 1-4.12 0v-.09A1.7 1.7 0 0 0 8.8 19.36a1.7 1.7 0 0 0-1.87.35l-.06.06a2.06 2.06 0 1 1-2.92-2.92l.06-.06A1.7 1.7 0 0 0 4.35 15a1.7 1.7 0 0 0-1.55-1H2.7A2.06 2.06 0 1 1 2.7 9.9h.09A1.7 1.7 0 0 0 4.35 8.9a1.7 1.7 0 0 0-.35-1.87l-.06-.06A2.06 2.06 0 1 1 6.86 4.05l.06.06A1.7 1.7 0 0 0 8.8 4.46a1.7 1.7 0 0 0 1-1.55V2.8a2.06 2.06 0 1 1 4.12 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.35l.06-.06a2.06 2.06 0 1 1 2.92 2.92l-.06.06a1.7 1.7 0 0 0-.35 1.87v.03a1.7 1.7 0 0 0 1.55 1h.09a2.06 2.06 0 1 1 0 4.12h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg></div><span>Settings</span></button>
+  </div>
+
+  <!-- ===== SHEET OVERLAY ===== -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="if(event.target===this)closeSheet()"></div>
+
+  <!-- ===== ONBOARDING OVERLAY ===== -->
+  <div class="sheet-overlay" id="onboardOverlay">
+    <div class="sheet" style="max-height:92vh;">
+      <div class="sheet-title">Khushamdeed! 🌿</div>
+      <p class="sub" style="margin-bottom:16px;">Chaliye apka profile set karte hain (optional), ye sirf 30 second lagen ge — ya "Skip" kar ke seedha app use karein aur profile baad mein Settings se bana lein.</p>
+      <div class="field"><label>Aapka Naam</label><input id="obName" type="text" placeholder="e.g. Ali"/></div>
+      <div class="row-2">
+        <div class="field"><label>Age</label><input id="obAge" type="number" placeholder="25"/></div>
+        <div class="field"><label>Gender</label>
+          <select id="obGender"><option value="male">Male</option><option value="female">Female</option></select>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>Height (cm)</label><input id="obHeight" type="number" placeholder="170"/></div>
+        <div class="field"><label>Weight (kg)</label><input id="obWeight" type="number" placeholder="65"/></div>
+      </div>
+      <div class="field"><label>Activity Level</label>
+        <select id="obActivity">
+          <option value="sedentary">Sedentary (kam movement)</option>
+          <option value="light">Light</option>
+          <option value="moderate" selected>Moderate</option>
+          <option value="active">Active</option>
+          <option value="veryactive">Very Active</option>
+        </select>
+      </div>
+      <button class="btn" onclick="finishOnboarding()">Shuru Karein</button>
+      <button class="btn ghost" style="margin-top:10px;" onclick="skipOnboarding()">Skip For Now</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
