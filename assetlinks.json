@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.iamkashifyaseen.twa",
+      "sha256_cert_fingerprints": [
+        "0A:7A:F4:6C:9B:CE:C3:17:7B:E0:7C:07:65:32:05:4B:0A:23:8A:4E:A9:1F:3A:05:C5:3E:54:6E:E5:8E:47:5C"
+      ]
+    }
+  }
+]
